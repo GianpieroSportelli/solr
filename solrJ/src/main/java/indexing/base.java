@@ -1,59 +1,84 @@
 package indexing;
 
 import java.io.IOException;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.impl.auth.HttpAuthenticator;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.beans.Field;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
-import org.apache.solr.client.solrj.impl.CloudSolrClient.Builder;
-import org.apache.solr.client.solrj.impl.HttpSolrClient;
-import org.apache.solr.client.solrj.impl.LBHttpSolrClient;
+import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
-import org.apache.solr.common.SolrInputDocument;
 
 public class base {
 
 	public static void main(String[] args) throws SolrServerException, IOException {
-		final CloudSolrClient client = getSolrClient();
+		final SolrClient client = getSolrClient();
+		String collection = "jump3_collection";
+		client.deleteByQuery(collection, "*:*", 100);
+		System.out.println("document deleted");
+		CollectionDocument doc = new CollectionDocument("kindle-id-4", "Amazon Kindle Paperwhite");
+		UpdateResponse response = client.addBean(collection, doc, 100);
+		System.out.println(response);
+		client.commit(collection);
+		
+		doc = new CollectionDocument("kindle-id-5", "SSD Samsung 860 EVO M.2 SATA III");
+		response = client.addBean(collection, doc, 100);
+		System.out.println(response);
+		client.commit(collection);
+		
+		SolrQuery query = new SolrQuery("value:Samsung");
+		query.addField("id");
+		query.addField("value");
 
-		final SolrInputDocument doc = new SolrInputDocument();
-		doc.addField("id", UUID.randomUUID().toString());
-		doc.addField("name", "Amazon Kindle Paperwhite");
-		final UpdateResponse updateResponse = client.add("jump3_collection", doc);
-		// Indexed documents must be committed
-		client.commit("jump3_collection");
+		QueryResponse responseQuery = client.query(collection, query);
+		System.out.println(responseQuery);
+		List<CollectionDocument> products = responseQuery.getBeans(CollectionDocument.class);
+		for(CollectionDocument p: products){
+			System.out.println(p);
+		}
+		client.close();
 	}
 
-	private static CloudSolrClient getSolrClient() {
-		String url="http://192.168.1.13:8983/solr";
-		CredentialsProvider provider = new BasicCredentialsProvider();
-		UsernamePasswordCredentials credentials
-		 = new UsernamePasswordCredentials("rpiCapo", "SolrRocks");
-		provider.setCredentials(AuthScope.ANY, credentials);
-		  
-		CloseableHttpClient base = HttpClientBuilder.create()
-		  .setDefaultCredentialsProvider(provider)
-		  .build();
-		HttpSolrClient client = new HttpSolrClient.Builder(url).build();
+	public static class CollectionDocument {
+		@Field
+		public String id;
+		@Field
+		public ArrayList<String> value;
+
+		public CollectionDocument(String id, String value) {
+			this.id = id;
+			this.value = new ArrayList<String>();
+			this.value.add(value);
+		}
 		
-		String zkHost = "192.168.1.13:9983";
-		CloudSolrClient cloud = new CloudSolrClient.Builder()
-                .withZkHost("192.168.1.13:9983")
-                .withLBHttpSolrClientBuilder(new LBHttpSolrClient.Builder()
-                    .withResponseParser(client.getParser())
-                    .withHttpSolrClientBuilder(
-                        new HttpSolrClient.Builder().withHttpClient(base)
-                    ))
-                        .build();;
-		return cloud;
+		public CollectionDocument() {
+		}
+		
+		public String toString(){
+			String str="";
+			for(String s:value){
+				str+=s+" ";
+			}
+			return "{\"id\":\""+id+"\",\"value\":\""+str+"\"}";
+		}
+	}
+
+	private static SolrClient getSolrClient() {
+		 String zkHost = "jumphost.hopto.org:9983";
+		//String url = "http://jumphost.hopto.org:8983/solr/";
+		// String[] array = { "http://jumphost.hopto.org:8983/solr/*/",
+		// "http://jumphost.hopto.org:8984/solr/*/",
+		// "http://jumphost.hopto.org:8985/solr/*/",
+		// "http://jumphost.hopto.org:8986/solr/*/" };
+		// List<String> urls = Arrays.asList(array);
+		// CloudSolrClient cloud = new
+		// CloudSolrClient.Builder().withSolrUrl(urls).build();
+		 CloudSolrClient client = new CloudSolrClient.Builder().withZkHost(zkHost).build();
+		//HttpSolrClient client = new HttpSolrClient.Builder().withBaseSolrUrl(url).build();
+		return client;
 	}
 
 }
