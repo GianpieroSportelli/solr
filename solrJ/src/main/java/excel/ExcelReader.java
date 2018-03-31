@@ -1,10 +1,15 @@
 package excel;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
+
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 public class ExcelReader {
 
@@ -84,7 +89,7 @@ public class ExcelReader {
 		// System.out.println();
 		// }
 
-		// 3. Or you can use Java 8 forEach loop with lambda
+		 //3. Or you can use Java 8 forEach loop with lambda
 		// System.out.println("\n\nIterating over Rows and Columns using Java 8 forEach
 		// with lambda\n");
 		// sheet.forEach(row -> {
@@ -96,15 +101,25 @@ public class ExcelReader {
 		// });
 
 		boolean first = true;
+		Row firstRow;
+		
 		for (Row row : sheet) {
 			if (!first) {
-				for (Cell cell : row) {
+				for (int i =0; i<row.getRowNum();i++) {
+					Cell cell = row.getCell(i);
 					String cellValue = dataFormatter.formatCellValue(cell);
-					System.out.print(cellValue + "\t");
+					switch(i) {
+					case 0:
+					case 1:
+					case 2:
+					case 3:
+						
+					}
 				}
 				System.out.println();
 			} else {
 				first = false;
+				firstRow = row;
 			}
 		}
 
