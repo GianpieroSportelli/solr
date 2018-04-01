@@ -17,13 +17,15 @@ public class Indexer {
 	static final String ZK_HOST = "jumphost.hopto.org:9983";
 	static final String RICETTE_FILE_PATH = "src/main/java/excel/ricette.xls";
 	static final SolrClient client = getSolrClient();
-	static final String COLLECTION = "jump3_collection";
+	static final String COLLECTION = "ricette_collection";
+	static final int TIME_OUT = 1000;
+	static final int N_THREAD = 10;
 
 	public static void main(String[] args)
 			throws EncryptedDocumentException, InvalidFormatException, IOException, SolrServerException {
 
 		System.out.println("=== CLEAN COLLECTION START ===");
-		client.deleteByQuery(COLLECTION, "*:*", 100);
+		client.deleteByQuery(COLLECTION, "*:*", TIME_OUT);
 		System.out.println("=== COLLECTION CLEANED ===");
 
 		System.out.println("=== READ XLS START ===");
@@ -32,19 +34,26 @@ public class Indexer {
 		System.out.println("=== READ XLS DONE ===");
 
 		System.out.println("=== INDEX START ===");
-		for (RicettaDocument ricetta : ricette) {
-			System.out.println(ricetta);
-			if (!ricetta.asNull()) {
-				try {
-				UpdateResponse response = client.addBean(COLLECTION, ricetta, 100);
-				System.out.println(response);
-				client.commit(COLLECTION);
-				}catch(Exception e) {
-					System.err.println(e.getCause()+": "+ricetta);
-				}
-			} else {
-				System.err.println("alcuni campi null!!! da capire come gestire bene questi schemi");
-			}
+//		for (RicettaDocument ricetta : ricette) {
+//			System.out.println(ricetta);
+//			if (!ricetta.asNull()) {
+//				try {
+//				UpdateResponse response = client.addBean(COLLECTION, ricetta, 100);
+//				System.out.println(response);
+//				client.commit(COLLECTION);
+//				}catch(Exception e) {
+//					System.err.println(e.getCause()+": "+ricetta);
+//				}
+//			} else {
+//				System.err.println("alcuni campi null!!! da capire come gestire bene questi schemi");
+//			}
+//		}
+		IndexerThreadPool pool = new IndexerThreadPool(ricette, N_THREAD, client, COLLECTION, TIME_OUT);
+		try {
+			pool.run();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		System.out.println("=== INDEX STOP ===");
 		
