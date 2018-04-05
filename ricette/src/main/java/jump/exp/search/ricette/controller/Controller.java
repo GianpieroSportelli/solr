@@ -34,6 +34,8 @@ public class Controller {
 	public Controller(Configuration conf) {
 		String zkhost = conf.getZkhost();
 		log.debug("zookeper host: " + zkhost);
+		collection = conf.getCollection();
+		log.debug("collection: " + collection);
 		solr = getSolrClient(zkhost);
 	}
 
@@ -46,7 +48,7 @@ public class Controller {
 		return "/ricerca";
 	}
 
-	@RequestMapping(path = "/ricerca", method = RequestMethod.GET, params = { "q", "pagina", "numeroRisultati" })
+	@RequestMapping(path = "/ricerca", method = RequestMethod.GET, params = { "q", "pagina", "numeroRisultati" }, produces="application/json")
 	public @ResponseBody String search(@RequestParam(value = "q") String q, @RequestParam(value = "pagina") int pagina,
 			@RequestParam(value = "numeroRisultati") int n) throws SolrServerException, IOException {
 		String result = null;
@@ -74,6 +76,8 @@ public class Controller {
 		query.addField("Tipo_Piatto");
 		query.addField("id");
 		query.addField("Persone");
+		query.setStart((page-1)*pageResult);
+		query.setRows(pageResult);
 
 		QueryResponse responseQuery = solr.query(collection, query);
 		log.debug("result: " + responseQuery);
