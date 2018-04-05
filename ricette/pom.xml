@@ -5,11 +5,11 @@
 
 	<groupId>jump.exp.search</groupId>
 	<artifactId>ricette</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
 	<name>ricette</name>
-	<description>Demo project for Spring Boot</description>
+	<description>backend search engine</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -58,28 +58,6 @@
 			<artifactId>solr-solrj</artifactId>
 			<version>${solr.version}</version>
 		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.slf4j</groupId> -->
-<!-- 			<artifactId>slf4j-api</artifactId> -->
-<!-- 			<version>${slf4j.version}</version> -->
-<!-- 		</dependency> -->
-		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.slf4j</groupId> -->
-<!-- 			<artifactId>slf4j-simple</artifactId> -->
-<!-- 			<version>${slf4j.version}</version> -->
-<!-- 			<scope>test</scope> -->
-<!-- 		</dependency> -->
-
-<!-- 		<dependency> -->
-<!-- 			<groupId>org.slf4j</groupId> -->
-<!-- 			<artifactId>slf4j-nop</artifactId> -->
-<!-- 			<version>${slf4j.version}</version> -->
-<!-- 			<scope>compile</scope> -->
-<!-- 		</dependency> -->
-
 	</dependencies>
 
 	<build>
