@@ -16,7 +16,8 @@ public class TesterDoc {
 		for(RicettaDocument r: list) {
 			System.out.println(r);
 		}
-		//System.out.println(list.size());
+		
+		System.out.println(list.size());
  	}
 
 }

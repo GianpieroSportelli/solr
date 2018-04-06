@@ -1,10 +1,10 @@
 package jump.exp.search.ricette.controller;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrResponse;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -17,10 +17,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 
 import jump.exp.search.ricette.configuration.Configuration;
-import jump.exp.search.ricette.domain.RicetteDocument;
 
 @RestController
 @RequestMapping("/ricette")
@@ -48,15 +47,13 @@ public class Controller {
 		return "/ricerca";
 	}
 
-	@RequestMapping(path = "/ricerca", method = RequestMethod.GET, params = { "q", "pagina", "numeroRisultati" }, produces="application/json")
+	@RequestMapping(path = "/ricerca", method = RequestMethod.GET, params = { "q", "pagina", "righe" }, produces="application/json")
 	public @ResponseBody String search(@RequestParam(value = "q") String q, @RequestParam(value = "pagina") int pagina,
-			@RequestParam(value = "numeroRisultati") int n) throws SolrServerException, IOException {
-		String result = null;
-		List<RicetteDocument> ricette = solrSearch(q, pagina, n);
-		ObjectMapper objectMapper = new ObjectMapper();
-		result = objectMapper.writeValueAsString(ricette);
-		log.debug(result);
-		return result;
+			@RequestParam(value = "righe") int n) throws SolrServerException, IOException {
+		QueryResponse responseQuery = solrSearch(q, pagina, n);
+		Gson gson = new Gson(); 
+		String json = gson.toJson(responseQuery.getResults());
+		return json;
 	}
 
 	private SolrClient getSolrClient(String zkHost) {
@@ -65,7 +62,7 @@ public class Controller {
 		return client;
 	}
 
-	private List<RicetteDocument> solrSearch(String q, int page, int pageResult)
+	private QueryResponse solrSearch(String q, int page, int pageResult)
 			throws SolrServerException, IOException {
 		SolrQuery query = new SolrQuery(q);
 		query.addField("Nome");
@@ -80,8 +77,6 @@ public class Controller {
 		query.setRows(pageResult);
 
 		QueryResponse responseQuery = solr.query(collection, query);
-		log.debug("result: " + responseQuery);
-		List<RicetteDocument> ricette = responseQuery.getBeans(RicetteDocument.class);
-		return ricette;
+		return responseQuery;
 	}
 }

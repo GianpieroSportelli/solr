@@ -1,4 +1,4 @@
-package indexing;
+package solr.spike;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -18,8 +18,8 @@ public class Indexer {
 	static final String RICETTE_FILE_PATH = "src/main/java/excel/ricette.xls";
 	static final SolrClient client = getSolrClient();
 	static final String COLLECTION = "ricette_collection";
-	static final int TIME_OUT = 1000;
-	static final int N_THREAD = 10;
+	static final int TIME_OUT = 1500;
+	static final int N_THREAD = 16;
 
 	public static void main(String[] args)
 			throws EncryptedDocumentException, InvalidFormatException, IOException, SolrServerException {

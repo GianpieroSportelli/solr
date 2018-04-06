@@ -1,10 +1,12 @@
 package solr.indexer;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 
 import excel.RicettaDocument;
@@ -33,7 +35,6 @@ public class IndexerThreadPool {
 		for(Thread t: threads) {
 			t.start();
 		}
-		
 		for(Thread t: threads) {
 			t.join();
 		}
@@ -55,12 +56,24 @@ public class IndexerThreadPool {
 					try {
 						UpdateResponse response = client.addBean(collection, ricetta, timeOut);
 						System.out.println(name+"----"+response);
-						client.commit(collection);
+						
+						
 					} catch (Exception e) {
 						System.err.println(name+"----"+e.getMessage() + ": " + ricetta);
 					}
 				} else {
 					System.err.println(name+"----"+"alcuni campi null!!! da capire come gestire bene questi schemi");
+				}
+			}
+			synchronized (collection) {
+				try {
+					client.commit(collection);
+				} catch (SolrServerException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 		}
