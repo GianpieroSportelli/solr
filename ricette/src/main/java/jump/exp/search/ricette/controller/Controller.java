@@ -1,13 +1,19 @@
 package jump.exp.search.ricette.controller;
 
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrResponse;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.response.FieldStatsInfo;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,13 +53,29 @@ public class Controller {
 		return "/ricerca";
 	}
 
-	@RequestMapping(path = "/ricerca", method = RequestMethod.GET, params = { "q", "pagina", "righe" }, produces="application/json")
-	public @ResponseBody String search(@RequestParam(value = "q") String q, @RequestParam(value = "pagina") int pagina,
-			@RequestParam(value = "righe") int n) throws SolrServerException, IOException {
+	@RequestMapping(path = "/ricerca", method = RequestMethod.GET, params = { "q", "pagina",
+			"righe" }, produces = "application/json")
+	public @ResponseBody String search(@RequestParam(value = "q") String q,
+			@RequestParam(value = "pagina", required = false, defaultValue = "1") Integer pagina,
+			@RequestParam(value = "righe", required = false, defaultValue = "1") Integer n)
+			throws SolrServerException, IOException, JSONException {
 		QueryResponse responseQuery = solrSearch(q, pagina, n);
-		Gson gson = new Gson(); 
-		String json = gson.toJson(responseQuery.getResults());
-		return json;
+		JSONObject result = new JSONObject();
+		int status = responseQuery.getStatus();
+		result.put("status", status);
+		Map<String, FieldStatsInfo> stats = responseQuery.getFieldStatsInfo();
+		if (stats != null)
+			for (String key : stats.keySet()) {
+				log.debug(key + ":" + stats.get(key));
+			}
+		SolrDocumentList solrResults =responseQuery.getResults();
+		long numFound = solrResults.getNumFound();
+		result.put("numFound", numFound);
+		Gson gson = new Gson();
+		JSONArray qResults = new JSONArray(gson.toJson(solrResults));
+		result.put("results", qResults);
+		log.debug(result.toString(4));
+		return result.toString();
 	}
 
 	private SolrClient getSolrClient(String zkHost) {
@@ -62,8 +84,7 @@ public class Controller {
 		return client;
 	}
 
-	private QueryResponse solrSearch(String q, int page, int pageResult)
-			throws SolrServerException, IOException {
+	private QueryResponse solrSearch(String q, int page, int pageResult) throws SolrServerException, IOException {
 		SolrQuery query = new SolrQuery(q);
 		query.addField("Nome");
 		query.addField("Ing_Principale");
@@ -73,10 +94,10 @@ public class Controller {
 		query.addField("Tipo_Piatto");
 		query.addField("id");
 		query.addField("Persone");
-		query.setStart((page-1)*pageResult);
+		query.setStart((page - 1) * pageResult);
 		query.setRows(pageResult);
 
-		QueryResponse responseQuery = solr.query(collection, query);
+		QueryResponse responseQuery = solr.query(collection, query );
 		return responseQuery;
 	}
 }
