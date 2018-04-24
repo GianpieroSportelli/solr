@@ -23,7 +23,7 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 public class RicetteBot extends TelegramLongPollingBot {
 
-	private String error = "Ops... Riporva c'è stato un problema";
+	private String error = "Ops... Riprova c'è stato un problema";
 	private Map<Long, String> lastQuery = new HashMap<>();
 	private Map<Long, Integer> lastQueryPage = new HashMap<>();
 	private Map<Long, JSONObject> lastQueryObj = new HashMap<>();
