@@ -27,6 +27,7 @@ public class RicetteBot extends TelegramLongPollingBot {
 	private Map<Long, String> lastQuery = new HashMap<>();
 	private Map<Long, Integer> lastQueryPage = new HashMap<>();
 	private Map<Long, JSONObject> lastQueryObj = new HashMap<>();
+	private String welcome="Ciao, scrivimi gli ingredienti o il nome della ricetta che vorresti realizzare al resto ci penso io :)";
 
 	public String getBotUsername() {
 		// TODO Auto-generated method stub
@@ -42,8 +43,9 @@ public class RicetteBot extends TelegramLongPollingBot {
 			System.out.println(" da: " + chat_id);
 			int pagina = 1;
 			String query = "";
-
-			if (message_text.equals("lista ing.")) {
+			if(message_text.equals("/start")){
+				startMessageResponse(chat_id);
+			}else if (message_text.equals("lista ing.")) {
 				listIngMessageResponse(chat_id);
 			} else if (message_text.equals("back")) {
 				pagina = (lastQueryPage.containsKey(chat_id) ? lastQueryPage.get(chat_id) : 1);
@@ -74,6 +76,18 @@ public class RicetteBot extends TelegramLongPollingBot {
 
 		}
 
+	}
+
+	private void startMessageResponse(Long chat_id) {
+		SendMessage message = new SendMessage() // Create a SendMessage object with mandatory fields
+				.setChatId(chat_id).setParseMode("HTML")
+				.setText(welcome);
+
+		try {
+			execute(message); // Call method to send the message
+		} catch (TelegramApiException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private String detail(JSONObject response) {
@@ -122,8 +136,11 @@ public class RicetteBot extends TelegramLongPollingBot {
 	private JSONObject search(String query, int pagina) throws MalformedURLException, IOException {
 		String url = "http://jumphost.hopto.org:89/ricette/ricerca?righe=1&pagina=" + pagina + "&q="
 				+ URLEncoder.encode(query, "UTF-8");
-		System.out.println("Search URL" + url);
+		System.out.println("Search URL: " + url);
 		URLConnection conn = (new URL(url)).openConnection();
+		conn.setConnectTimeout(3*1000);
+		conn.setReadTimeout(3*1000);
+		conn.connect();
 		String response = "";
 		String line = null;
 		BufferedReader read = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -131,6 +148,8 @@ public class RicetteBot extends TelegramLongPollingBot {
 			response += line;
 		}
 		JSONObject result = new JSONObject(response);
+		read.close();
+		
 		System.out.println(result.toString(4));
 		return result;
 	}
