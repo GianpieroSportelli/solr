@@ -23,10 +23,11 @@ import org.telegram.telegrambots.exceptions.TelegramApiException;
 
 public class RicetteBot extends TelegramLongPollingBot {
 
-	private String error = "Ops... Riporva c'è stato un problema";
+	private String error = "Ops... Riprova c'è stato un problema";
 	private Map<Long, String> lastQuery = new HashMap<>();
 	private Map<Long, Integer> lastQueryPage = new HashMap<>();
 	private Map<Long, JSONObject> lastQueryObj = new HashMap<>();
+	private String welcome="Ciao, scrivimi gli ingredienti o il nome della ricetta che vorresti realizzare al resto ci penso io :)";
 
 	public String getBotUsername() {
 		// TODO Auto-generated method stub
@@ -77,6 +78,18 @@ public class RicetteBot extends TelegramLongPollingBot {
 
 	}
 
+	private void startMessageResponse(Long chat_id) {
+		SendMessage message = new SendMessage() // Create a SendMessage object with mandatory fields
+				.setChatId(chat_id).setParseMode("HTML")
+				.setText(welcome);
+
+		try {
+			execute(message); // Call method to send the message
+		} catch (TelegramApiException e) {
+			e.printStackTrace();
+		}
+	}
+
 	private String detail(JSONObject response) {
 		StringBuffer buf = new StringBuffer();
 		if (response.getInt("status") != 0)
@@ -123,8 +136,11 @@ public class RicetteBot extends TelegramLongPollingBot {
 	private JSONObject search(String query, int pagina) throws MalformedURLException, IOException {
 		String url = "http://jumphost.hopto.org:89/ricette/ricerca?righe=1&pagina=" + pagina + "&q="
 				+ URLEncoder.encode(query, "UTF-8");
-		System.out.println("Search URL" + url);
+		System.out.println("Search URL: " + url);
 		URLConnection conn = (new URL(url)).openConnection();
+		conn.setConnectTimeout(3*1000);
+		conn.setReadTimeout(3*1000);
+		conn.connect();
 		String response = "";
 		String line = null;
 		BufferedReader read = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -132,6 +148,8 @@ public class RicetteBot extends TelegramLongPollingBot {
 			response += line;
 		}
 		JSONObject result = new JSONObject(response);
+		read.close();
+		
 		System.out.println(result.toString(4));
 		return result;
 	}
@@ -223,18 +241,6 @@ public class RicetteBot extends TelegramLongPollingBot {
 		SendMessage message = new SendMessage() // Create a SendMessage object with mandatory fields
 				.setChatId(chat_id).setParseMode("HTML")
 				.setText(lastQueryObj.containsKey(chat_id) ? listaIng(lastQueryObj.get(chat_id)) : error);
-
-		try {
-			execute(message); // Call method to send the message
-		} catch (TelegramApiException e) {
-			e.printStackTrace();
-		}
-	}
-
-	private void startMessageResponse(long chat_id) {
-		SendMessage message = new SendMessage() // Create a SendMessage object with mandatory fields
-				.setChatId(chat_id).setParseMode("HTML")
-				.setText("Benvenuto, scrivimi gli incredienti o il nome della ricetta che vorresti realizzare");
 
 		try {
 			execute(message); // Call method to send the message
