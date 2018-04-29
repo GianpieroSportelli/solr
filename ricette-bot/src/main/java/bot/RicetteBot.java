@@ -42,8 +42,9 @@ public class RicetteBot extends TelegramLongPollingBot {
 			System.out.println(" da: " + chat_id);
 			int pagina = 1;
 			String query = "";
-
-			if (message_text.equals("lista ing.")) {
+			if (message_text.equals("/start")) {
+				startMessageResponse(chat_id);
+			} else if (message_text.equals("lista ing.")) {
 				listIngMessageResponse(chat_id);
 			} else if (message_text.equals("back")) {
 				pagina = (lastQueryPage.containsKey(chat_id) ? lastQueryPage.get(chat_id) : 1);
@@ -222,6 +223,18 @@ public class RicetteBot extends TelegramLongPollingBot {
 		SendMessage message = new SendMessage() // Create a SendMessage object with mandatory fields
 				.setChatId(chat_id).setParseMode("HTML")
 				.setText(lastQueryObj.containsKey(chat_id) ? listaIng(lastQueryObj.get(chat_id)) : error);
+
+		try {
+			execute(message); // Call method to send the message
+		} catch (TelegramApiException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void startMessageResponse(long chat_id) {
+		SendMessage message = new SendMessage() // Create a SendMessage object with mandatory fields
+				.setChatId(chat_id).setParseMode("HTML")
+				.setText("Benvenuto, scrivimi gli incredienti o il nome della ricetta che vorresti realizzare");
 
 		try {
 			execute(message); // Call method to send the message
