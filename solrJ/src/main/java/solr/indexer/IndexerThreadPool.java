@@ -55,7 +55,7 @@ public class IndexerThreadPool {
 				if (!ricetta.asNull()) {
 					try {
 						UpdateResponse response = client.addBean(collection, ricetta, timeOut);
-						System.out.println(name+"----"+response);
+						//System.out.println(name+"----"+response);
 						
 						
 					} catch (Exception e) {

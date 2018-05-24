@@ -6,14 +6,18 @@ import java.util.List;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.CloudSolrClient;
+import org.apache.solr.client.solrj.impl.HttpSolrClient;
 import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.apache.solr.common.util.NamedList;
 
 import excel.RicettaDocument;
 
 public class Indexer {
-
+	
+	static final String BASE_URL="http://localhost:8984/solr";
 	static final String ZK_HOST = "jumphost.hopto.org:9983";
 	static final String RICETTE_FILE_PATH = "src/main/java/excel/ricette.xls";
 	static final SolrClient client = getSolrClient();
@@ -61,7 +65,8 @@ public class Indexer {
 	}
 
 	private static SolrClient getSolrClient() {
-		CloudSolrClient client = new CloudSolrClient.Builder().withZkHost(ZK_HOST).build();
+		//CloudSolrClient client = new CloudSolrClient.Builder().withZkHost(ZK_HOST).build();
+		SolrClient client = new HttpSolrClient.Builder().withBaseSolrUrl(BASE_URL).build();
 		return client;
 	}
 
